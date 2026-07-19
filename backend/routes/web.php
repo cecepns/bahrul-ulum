@@ -156,6 +156,10 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         });
         $router->group(['middleware' => 'role:superadmin,admin'], function () use ($router) {
             $router->post('alumni/donasi/{id}/verifikasi', 'AlumniController@verifikasiDonasi');
+            $router->get('alumni/accounts', 'AlumniController@listAccounts');
+            $router->post('alumni/accounts', 'AlumniController@storeAccount');
+            $router->put('alumni/accounts/{id}', 'AlumniController@updateAccount');
+            $router->delete('alumni/accounts/{id}', 'AlumniController@destroyAccount');
         });
 
         // Pengaturan & Master Data

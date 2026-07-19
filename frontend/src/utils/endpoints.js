@@ -84,6 +84,12 @@ export const API_ENDPOINTS = {
     LIST: "/alumni",
     DONASI: "/alumni/donasi",
     VERIFIKASI_DONASI: (id) => `/alumni/donasi/${id}/verifikasi`,
+    ACCOUNTS: {
+      LIST: "/alumni/accounts",
+      CREATE: "/alumni/accounts",
+      UPDATE: (id) => `/alumni/accounts/${id}`,
+      DELETE: (id) => `/alumni/accounts/${id}`,
+    },
   },
   SETTINGS: {
     GET: "/settings",

@@ -14,6 +14,7 @@ const AlumniAdmin = () => {
   // Data states
   const [alumniList, setAlumniList] = useState([]);
   const [donations, setDonations] = useState([]);
+  const [accountsList, setAccountsList] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -29,6 +30,19 @@ const AlumniAdmin = () => {
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState(null);
 
+  // Alumni account modals CRUD
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [accountFormData, setAccountFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    status_aktif: 1,
+    nis_siswa: ""
+  });
+  const [accountDeleteOpen, setAccountDeleteOpen] = useState(false);
+  const [accountDeleteId, setAccountDeleteId] = useState(null);
+
   const [actionLoading, setActionLoading] = useState(false);
 
   // Debounce search effect (300ms)
@@ -43,8 +57,10 @@ const AlumniAdmin = () => {
   useEffect(() => {
     if (activeTab === "directory") {
       fetchAlumniDirectory();
-    } else {
+    } else if (activeTab === "donations" || activeTab === "donasi") {
       fetchDonations();
+    } else if (activeTab === "accounts") {
+      fetchAlumniAccounts();
     }
   }, [activeTab, pagination.page, pagination.limit, debouncedSearch]);
 
@@ -130,6 +146,102 @@ const AlumniAdmin = () => {
       }
     } catch (err) {
       toast.error(err.message || "Gagal memproses verifikasi donasi");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const fetchAlumniAccounts = async () => {
+    setIsLoading(true);
+    try {
+      const res = await request.get(API_ENDPOINTS.ALUMNI.ACCOUNTS.LIST, {
+        page: pagination.page,
+        limit: pagination.limit,
+        search: debouncedSearch
+      });
+      if (res.success) {
+        setAccountsList(res.data);
+        setPagination(res.pagination);
+      }
+    } catch (err) {
+      toast.error(err.message || "Gagal memuat daftar akun alumni");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const openAccountCreateModal = () => {
+    setSelectedAccount(null);
+    setAccountFormData({
+      username: "",
+      email: "",
+      password: "",
+      status_aktif: 1,
+      nis_siswa: ""
+    });
+    setAccountModalOpen(true);
+  };
+
+  const openAccountEditModal = (acc) => {
+    setSelectedAccount(acc);
+    setAccountFormData({
+      username: acc.username,
+      email: acc.email,
+      password: "",
+      status_aktif: Number(acc.status_aktif),
+      nis_siswa: (acc.santri && acc.santri.length > 0) ? acc.santri[0].nis : ""
+    });
+    setAccountModalOpen(true);
+  };
+
+  const handleAccountSubmit = async (e) => {
+    e.preventDefault();
+    if (!accountFormData.username || !accountFormData.email) {
+      toast.error("Username dan Email wajib diisi.");
+      return;
+    }
+    if (!selectedAccount && !accountFormData.password) {
+      toast.error("Password wajib diisi untuk akun baru.");
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      let res;
+      if (selectedAccount) {
+        res = await request.put(API_ENDPOINTS.ALUMNI.ACCOUNTS.UPDATE(selectedAccount.id), accountFormData);
+      } else {
+        res = await request.post(API_ENDPOINTS.ALUMNI.ACCOUNTS.CREATE, accountFormData);
+      }
+
+      if (res.success) {
+        toast.success(res.message);
+        setAccountModalOpen(false);
+        fetchAlumniAccounts();
+      }
+    } catch (err) {
+      toast.error(err.message || "Gagal menyimpan akun alumni.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openAccountDeleteModal = (id) => {
+    setAccountDeleteId(id);
+    setAccountDeleteOpen(true);
+  };
+
+  const handleAccountDeleteConfirm = async () => {
+    setActionLoading(true);
+    try {
+      const res = await request.delete(API_ENDPOINTS.ALUMNI.ACCOUNTS.DELETE(accountDeleteId));
+      if (res.success) {
+        toast.success(res.message);
+        setAccountDeleteOpen(false);
+        fetchAlumniAccounts();
+      }
+    } catch (err) {
+      toast.error(err.message || "Gagal menghapus akun alumni.");
     } finally {
       setActionLoading(false);
     }

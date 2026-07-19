@@ -14,7 +14,8 @@ import {
   AlertCircle,
   School,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Volume2
 } from "lucide-react";
 import {
   AreaChart,
@@ -28,9 +29,26 @@ import {
   ResponsiveContainer
 } from "recharts";
 
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  } catch (e) {
+    return dateStr;
+  }
+};
+
 const Dashboard = () => {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [announcements, setAnnouncements] = useState([]);
   const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
@@ -43,6 +61,10 @@ const Dashboard = () => {
       const res = await request.get(API_ENDPOINTS.DASHBOARD);
       if (res.success) {
         setData(res.data);
+      }
+      const annRes = await request.get(API_ENDPOINTS.PENGUMUMAN.ACTIVE);
+      if (annRes.success) {
+        setAnnouncements(annRes.data);
       }
     } catch (err) {
       console.error("Gagal memuat dashboard data:", err);
@@ -107,6 +129,31 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+        {/* Announcement Board Widget */}
+        {announcements && announcements.length > 0 && (
+          <div className="bg-amber-50/50 border border-amber-100/60 rounded-3xl p-6 space-y-4">
+            <div className="flex items-center gap-2 text-amber-800">
+              <span className="p-2 bg-amber-100 rounded-xl">
+                <Volume2 size={20} className="animate-bounce" />
+              </span>
+              <div>
+                <h3 className="font-extrabold text-sm uppercase tracking-wider">Pengumuman Resmi Pondok</h3>
+                <p className="text-[11px] text-amber-700/80 font-medium">Informasi penting untuk wali santri & alumni</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {announcements.map((ann) => (
+                <div key={ann.id} className="bg-white border border-amber-100/40 p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                  <h4 className="font-bold text-slate-800 text-sm mb-1">{ann.judul}</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">{ann.konten}</p>
+                  <span className="text-[10px] text-slate-400 font-semibold mt-3 block">
+                    Diterbitkan: {formatDate(ann.created_at)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Stats Grid - Premium Layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -213,6 +260,32 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Announcement Board Widget */}
+        {announcements && announcements.length > 0 && (
+          <div className="bg-amber-50/50 border border-amber-100/60 rounded-3xl p-6 space-y-4">
+            <div className="flex items-center gap-2 text-amber-800">
+              <span className="p-2 bg-amber-100 rounded-xl">
+                <Volume2 size={20} className="animate-bounce" />
+              </span>
+              <div>
+                <h3 className="font-extrabold text-sm uppercase tracking-wider">Pengumuman Resmi Pondok</h3>
+                <p className="text-[11px] text-amber-700/80 font-medium">Informasi penting untuk wali santri & alumni</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {announcements.map((ann) => (
+                <div key={ann.id} className="bg-white border border-amber-100/40 p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                  <h4 className="font-bold text-slate-800 text-sm mb-1">{ann.judul}</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">{ann.konten}</p>
+                  <span className="text-[10px] text-slate-400 font-semibold mt-3 block">
+                    Diterbitkan: {formatDate(ann.created_at)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="max-w-md bg-white/70 backdrop-blur-md p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
           <div className="p-4 bg-teal-50 text-teal-650 text-teal-600 rounded-xl">

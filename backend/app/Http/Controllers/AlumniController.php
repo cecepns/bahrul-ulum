@@ -134,4 +134,181 @@ class AlumniController extends Controller
             'data' => $donasi
         ]);
     }
+
+    // List Alumni accounts (Admin)
+    public function listAccounts(Request $request)
+    {
+        $search = $request->input('search');
+        $limit = $request->input('limit', 10);
+
+        $query = \App\Models\User::where('role', 'alumni');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('username', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $alumni = $query->paginate($limit);
+
+        foreach ($alumni->items() as $acc) {
+            $acc->santri = Santri::where('user_id', $acc->id)->get(['id', 'nama_lengkap', 'nis']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $alumni->items(),
+            'pagination' => [
+                'page' => $alumni->currentPage(),
+                'limit' => $alumni->perPage(),
+                'total' => $alumni->total(),
+                'totalPages' => $alumni->lastPage()
+            ]
+        ]);
+    }
+
+    // Create new Alumni account (Admin)
+    public function storeAccount(Request $request)
+    {
+        $this->validate($request, [
+            'username' => 'required|string|max:50|unique:users,username',
+            'email' => 'required|email|max:100|unique:users,email',
+            'password' => 'required|string|min:6',
+            'status_aktif' => 'required|boolean',
+            'nis_siswa' => 'nullable|string|max:50'
+        ]);
+
+        if ($request->filled('nis_siswa')) {
+            $santri = Santri::where('nis', $request->input('nis_siswa'))->first();
+            if (!$santri) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Santri/Alumni dengan NIS ' . $request->input('nis_siswa') . ' tidak ditemukan.'
+                ], 422);
+            }
+            if ($santri->status_aktif !== 'alumni') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Santri dengan NIS tersebut belum diset sebagai alumni oleh admin.'
+                ], 422);
+            }
+            if ($santri->user_id) {
+                $linkedUser = \App\Models\User::find($santri->user_id);
+                if ($linkedUser && $linkedUser->role === 'alumni') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Alumni dengan NIS tersebut sudah memiliki akun alumni lain.'
+                    ], 422);
+                }
+            }
+        }
+
+        $user = \App\Models\User::create([
+            'username' => $request->input('username'),
+            'email' => $request->input('email'),
+            'password' => password_hash($request->input('password'), PASSWORD_BCRYPT),
+            'role' => 'alumni',
+            'status_aktif' => $request->input('status_aktif')
+        ]);
+
+        if ($request->filled('nis_siswa') && isset($santri)) {
+            Santri::where('user_id', $user->id)->update(['user_id' => null]);
+            $santri->user_id = $user->id;
+            $santri->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Akun Alumni berhasil ditambahkan.',
+            'data' => $user
+        ], 201);
+    }
+
+    // Update Alumni account (Admin)
+    public function updateAccount(Request $request, $id)
+    {
+        $user = \App\Models\User::where('id', $id)->where('role', 'alumni')->first();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akun Alumni tidak ditemukan.'
+            ], 404);
+        }
+
+        $this->validate($request, [
+            'username' => 'required|string|max:50|unique:users,username,' . $id,
+            'email' => 'required|email|max:100|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:6',
+            'status_aktif' => 'required|boolean',
+            'nis_siswa' => 'nullable|string|max:50'
+        ]);
+
+        if ($request->filled('nis_siswa')) {
+            $santri = Santri::where('nis', $request->input('nis_siswa'))->first();
+            if (!$santri) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Santri/Alumni dengan NIS ' . $request->input('nis_siswa') . ' tidak ditemukan.'
+                ], 422);
+            }
+            if ($santri->status_aktif !== 'alumni') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Santri dengan NIS tersebut belum diset sebagai alumni oleh admin.'
+                ], 422);
+            }
+            if ($santri->user_id && $santri->user_id != $id) {
+                $linkedUser = \App\Models\User::find($santri->user_id);
+                if ($linkedUser && $linkedUser->role === 'alumni') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Alumni dengan NIS tersebut sudah memiliki akun alumni lain.'
+                    ], 422);
+                }
+            }
+
+            Santri::where('user_id', $id)->update(['user_id' => null]);
+            $santri->user_id = $id;
+            $santri->save();
+        } else {
+            Santri::where('user_id', $id)->update(['user_id' => null]);
+        }
+
+        $user->username = $request->input('username');
+        $user->email = $request->input('email');
+        $user->status_aktif = $request->input('status_aktif');
+
+        if ($request->input('password')) {
+            $user->password = password_hash($request->input('password'), PASSWORD_BCRYPT);
+        }
+
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Akun Alumni berhasil diperbarui.',
+            'data' => $user
+        ]);
+    }
+
+    // Delete Alumni account (Admin)
+    public function destroyAccount($id)
+    {
+        $user = \App\Models\User::where('id', $id)->where('role', 'alumni')->first();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akun Alumni tidak ditemukan.'
+            ], 404);
+        }
+
+        Santri::where('user_id', $id)->update(['user_id' => null]);
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Akun Alumni berhasil dihapus.'
+        ]);
+    }
 }

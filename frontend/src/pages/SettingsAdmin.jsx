@@ -19,6 +19,22 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+const formatDate = (dateStr) => {
+  if (!dateStr) return "-";
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  } catch (e) {
+    return dateStr;
+  }
+};
+
 const SettingsAdmin = () => {
   const user = JSON.parse(localStorage.getItem("user"));
   const isSuper = user?.role === "superadmin";
@@ -487,7 +503,7 @@ const SettingsAdmin = () => {
                         </div>
                         <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{ann.konten}</p>
                         <span className="text-[10px] text-slate-400 font-medium block pt-1">
-                          Penulis: {ann.user?.username.replace(/_/g, ' ')} | Tanggal: {ann.created_at}
+                          Penulis: {ann.user?.username.replace(/_/g, ' ')} | Tanggal: {formatDate(ann.created_at)}
                         </span>
                       </div>
                       <div className="flex gap-1.5 ml-4">
