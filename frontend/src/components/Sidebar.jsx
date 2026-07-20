@@ -86,7 +86,7 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
           label: "Kesiswaan & PPDB",
           icon: FolderOpen,
           items: [
-            { path: "/ppdb", label: "PPDB Online", icon: UserCheck },
+            { path: "/ppdb/list", label: "PPDB Online", icon: UserCheck },
             { path: "/santri", label: "Data Santri", icon: Users },
             { path: "/kelas", label: "Manajemen Kelas", icon: History }
           ]

@@ -156,6 +156,9 @@ $router->group(['prefix' => 'api'], function () use ($router) {
         });
         $router->group(['middleware' => 'role:superadmin,admin'], function () use ($router) {
             $router->post('alumni/donasi/{id}/verifikasi', 'AlumniController@verifikasiDonasi');
+            $router->post('alumni', 'AlumniController@store');
+            $router->put('alumni/{id}', 'AlumniController@update');
+            $router->delete('alumni/{id}', 'AlumniController@destroy');
             $router->get('alumni/accounts', 'AlumniController@listAccounts');
             $router->post('alumni/accounts', 'AlumniController@storeAccount');
             $router->put('alumni/accounts/{id}', 'AlumniController@updateAccount');

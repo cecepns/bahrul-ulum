@@ -3,8 +3,9 @@ import { request } from "../utils/request";
 import { API_ENDPOINTS } from "../utils/endpoints";
 import Pagination from "../components/Pagination";
 import Modal from "../components/Modal";
+import ConfirmModal from "../components/ConfirmModal";
 import { SkeletonTable } from "../components/Skeleton";
-import { Plus, Check, X, Search, FileText, Upload, Calendar, Heart } from "lucide-react";
+import { Plus, Check, X, Search, FileText, Upload, Calendar, Heart, Edit, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const AlumniAdmin = () => {
@@ -29,6 +30,22 @@ const AlumniAdmin = () => {
   // Admin Donation Verification Modals
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState(null);
+
+  // Alumni Directory modals CRUD
+  const [alumniModalOpen, setAlumniModalOpen] = useState(false);
+  const [selectedAlumni, setSelectedAlumni] = useState(null);
+  const [alumniFormData, setAlumniFormData] = useState({
+    nama_lengkap: "",
+    nis: "",
+    alamat: "",
+    jenis_kelamin: "Laki-laki",
+    tempat_lahir: "",
+    tanggal_lahir: "",
+    tahun_ajaran_id: ""
+  });
+  const [alumniDeleteOpen, setAlumniDeleteOpen] = useState(false);
+  const [alumniDeleteId, setAlumniDeleteId] = useState(null);
+  const [tahunAjaranList, setTahunAjaranList] = useState([]);
 
   // Alumni account modals CRUD
   const [accountModalOpen, setAccountModalOpen] = useState(false);
@@ -64,6 +81,20 @@ const AlumniAdmin = () => {
     }
   }, [activeTab, pagination.page, pagination.limit, debouncedSearch]);
 
+  useEffect(() => {
+    const fetchTahunAjaran = async () => {
+      try {
+        const res = await request.get(API_ENDPOINTS.TAHUN_AJARAN.LIST);
+        if (res.success) {
+          setTahunAjaranList(res.data);
+        }
+      } catch (err) {
+        // Fallback
+      }
+    };
+    fetchTahunAjaran();
+  }, []);
+
   const fetchAlumniDirectory = async () => {
     setIsLoading(true);
     try {
@@ -80,6 +111,83 @@ const AlumniAdmin = () => {
       toast.error(err.message || "Gagal memuat alumni directory");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const openAlumniCreateModal = () => {
+    setSelectedAlumni(null);
+    setAlumniFormData({
+      nama_lengkap: "",
+      nis: "",
+      alamat: "",
+      jenis_kelamin: "Laki-laki",
+      tempat_lahir: "",
+      tanggal_lahir: "",
+      tahun_ajaran_id: tahunAjaranList[0]?.id || ""
+    });
+    setAlumniModalOpen(true);
+  };
+
+  const openAlumniEditModal = (alumni) => {
+    setSelectedAlumni(alumni);
+    setAlumniFormData({
+      nama_lengkap: alumni.nama_lengkap || "",
+      nis: alumni.nis || "",
+      alamat: alumni.alamat || "",
+      jenis_kelamin: alumni.jenis_kelamin || "Laki-laki",
+      tempat_lahir: alumni.tempat_lahir || "",
+      tanggal_lahir: alumni.tanggal_lahir || "",
+      tahun_ajaran_id: alumni.tahun_ajaran_id || ""
+    });
+    setAlumniModalOpen(true);
+  };
+
+  const handleAlumniSubmit = async (e) => {
+    e.preventDefault();
+    if (!alumniFormData.nama_lengkap) {
+      toast.error("Nama Lengkap alumni wajib diisi.");
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      let res;
+      if (selectedAlumni) {
+        res = await request.put(API_ENDPOINTS.ALUMNI.UPDATE(selectedAlumni.id), alumniFormData);
+      } else {
+        res = await request.post(API_ENDPOINTS.ALUMNI.CREATE, alumniFormData);
+      }
+
+      if (res.success) {
+        toast.success(res.message);
+        setAlumniModalOpen(false);
+        fetchAlumniDirectory();
+      }
+    } catch (err) {
+      toast.error(err.message || "Gagal menyimpan data alumni.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openAlumniDeleteModal = (id) => {
+    setAlumniDeleteId(id);
+    setAlumniDeleteOpen(true);
+  };
+
+  const handleAlumniDeleteConfirm = async () => {
+    setActionLoading(true);
+    try {
+      const res = await request.delete(API_ENDPOINTS.ALUMNI.DELETE(alumniDeleteId));
+      if (res.success) {
+        toast.success(res.message);
+        setAlumniDeleteOpen(false);
+        fetchAlumniDirectory();
+      }
+    } catch (err) {
+      toast.error(err.message || "Gagal menghapus data alumni.");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -273,18 +381,29 @@ const AlumniAdmin = () => {
             ))}
           </div>
 
-          {/* Search */}
-          <div className="relative w-full md:w-80">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-              <Search size={18} />
-            </span>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari..."
-              className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 text-sm font-medium text-slate-700"
-            />
+          {/* Action buttons & Search */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+            {activeTab === "directory" && (
+              <button
+                onClick={openAlumniCreateModal}
+                className="w-full sm:w-auto px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md transition-colors flex items-center justify-center gap-1.5"
+              >
+                <Plus size={16} />
+                Tambah Alumni
+              </button>
+            )}
+            <div className="relative w-full md:w-80">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                <Search size={18} />
+              </span>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Cari..."
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 text-sm font-medium text-slate-700"
+              />
+            </div>
           </div>
         </div>
       ) : (
@@ -312,7 +431,7 @@ const AlumniAdmin = () => {
       {activeTab === "directory" && (
         <>
           {isLoading ? (
-            <SkeletonTable rows={5} cols={4} />
+            <SkeletonTable rows={5} cols={isAlumni ? 5 : 6} />
           ) : alumniList.length === 0 ? (
             <div className="bg-white border border-slate-100 p-12 rounded-2xl text-center">
               <p className="text-slate-400 text-sm font-medium">Tidak ada data alumni.</p>
@@ -328,6 +447,7 @@ const AlumniAdmin = () => {
                       <th className="px-6 py-4">NIS</th>
                       <th className="px-6 py-4">Alamat</th>
                       <th className="px-6 py-4">Tahun Keluar</th>
+                      {!isAlumni && <th className="px-6 py-4 text-right">Aksi</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-700 font-medium">
@@ -336,8 +456,28 @@ const AlumniAdmin = () => {
                         <td className="px-6 py-4">{(pagination.page - 1) * pagination.limit + idx + 1}</td>
                         <td className="px-6 py-4 font-semibold text-slate-800">{alumni.nama_lengkap}</td>
                         <td className="px-6 py-4">{alumni.nis ?? "-"}</td>
-                        <td className="px-6 py-4">{alumni.alamat}</td>
-                        <td className="px-6 py-4">{alumni.tahun_ajaran?.tahun}</td>
+                        <td className="px-6 py-4">{alumni.alamat || "-"}</td>
+                        <td className="px-6 py-4">{alumni.tahun_ajaran?.tahun ?? "-"}</td>
+                        {!isAlumni && (
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => openAlumniEditModal(alumni)}
+                                className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-slate-50 rounded-lg transition-colors"
+                                title="Edit Alumni"
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button
+                                onClick={() => openAlumniDeleteModal(alumni.id)}
+                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-50 rounded-lg transition-colors"
+                                title="Hapus Alumni"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -595,6 +735,130 @@ const AlumniAdmin = () => {
           </div>
         )}
       </Modal>
+
+      {/* Alumni Create/Edit Modal */}
+      <Modal
+        isOpen={alumniModalOpen}
+        onClose={() => setAlumniModalOpen(false)}
+        title={selectedAlumni ? "Edit Data Alumni" : "Tambah Data Alumni Baru"}
+      >
+        <form onSubmit={handleAlumniSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap *</label>
+            <input
+              type="text"
+              required
+              value={alumniFormData.nama_lengkap}
+              onChange={(e) => setAlumniFormData({ ...alumniFormData, nama_lengkap: e.target.value })}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              placeholder="Masukkan nama lengkap"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">NIS (Opsional)</label>
+              <input
+                type="text"
+                value={alumniFormData.nis}
+                onChange={(e) => setAlumniFormData({ ...alumniFormData, nis: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                placeholder="Nomor Induk Siswa"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Jenis Kelamin</label>
+              <select
+                value={alumniFormData.jenis_kelamin}
+                onChange={(e) => setAlumniFormData({ ...alumniFormData, jenis_kelamin: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              >
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Tempat Lahir</label>
+              <input
+                type="text"
+                value={alumniFormData.tempat_lahir}
+                onChange={(e) => setAlumniFormData({ ...alumniFormData, tempat_lahir: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                placeholder="Kota Kelahiran"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Tanggal Lahir</label>
+              <input
+                type="date"
+                value={alumniFormData.tanggal_lahir}
+                onChange={(e) => setAlumniFormData({ ...alumniFormData, tanggal_lahir: e.target.value })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Tahun Lulus / Keluar</label>
+            <select
+              value={alumniFormData.tahun_ajaran_id}
+              onChange={(e) => setAlumniFormData({ ...alumniFormData, tahun_ajaran_id: e.target.value })}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            >
+              <option value="">Pilih Tahun Ajaran / Lulus</option>
+              {tahunAjaranList.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.tahun} ({t.semester})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Alamat Domisili</label>
+            <textarea
+              rows="3"
+              value={alumniFormData.alamat}
+              onChange={(e) => setAlumniFormData({ ...alumniFormData, alamat: e.target.value })}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 text-slate-700"
+              placeholder="Alamat lengkap alumni..."
+            ></textarea>
+          </div>
+
+          <div className="flex gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setAlumniModalOpen(false)}
+              className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={actionLoading}
+              className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {actionLoading && (
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              )}
+              {selectedAlumni ? "Simpan Perubahan" : "Tambah Alumni"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Alumni Confirm Modal */}
+      <ConfirmModal
+        isOpen={alumniDeleteOpen}
+        onClose={() => setAlumniDeleteOpen(false)}
+        onConfirm={handleAlumniDeleteConfirm}
+        title="Hapus Data Alumni"
+        message="Apakah Anda yakin ingin menghapus data alumni ini dari direktori?"
+        isLoading={actionLoading}
+      />
     </div>
   );
 };

@@ -40,6 +40,89 @@ class AlumniController extends Controller
         ]);
     }
 
+    // Create new alumni record (Admin)
+    public function store(Request $request)
+    {
+        $this->validate($request, [
+            'nama_lengkap' => 'required|string|max:100',
+            'nis'          => 'nullable|string|max:50|unique:santri,nis',
+            'alamat'       => 'nullable|string',
+            'jenis_kelamin'=> 'nullable|in:Laki-laki,Perempuan',
+            'tempat_lahir' => 'nullable|string|max:100',
+            'tanggal_lahir'=> 'nullable|date',
+            'tahun_ajaran_id' => 'nullable|integer',
+        ]);
+
+        $santri = Santri::create([
+            'nama_lengkap'    => $request->input('nama_lengkap'),
+            'nis'             => $request->input('nis'),
+            'alamat'          => $request->input('alamat'),
+            'jenis_kelamin'   => $request->input('jenis_kelamin'),
+            'tempat_lahir'    => $request->input('tempat_lahir'),
+            'tanggal_lahir'   => $request->input('tanggal_lahir'),
+            'tahun_ajaran_id' => $request->input('tahun_ajaran_id'),
+            'status_aktif'    => 'alumni',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data alumni berhasil ditambahkan.',
+            'data'    => $santri->load('tahunAjaran')
+        ], 201);
+    }
+
+    // Update alumni record (Admin)
+    public function update(Request $request, $id)
+    {
+        $santri = Santri::where('id', $id)->where('status_aktif', 'alumni')->first();
+        if (!$santri) {
+            return response()->json(['success' => false, 'message' => 'Data alumni tidak ditemukan.'], 404);
+        }
+
+        $this->validate($request, [
+            'nama_lengkap' => 'required|string|max:100',
+            'nis'          => 'nullable|string|max:50|unique:santri,nis,' . $id,
+            'alamat'       => 'nullable|string',
+            'jenis_kelamin'=> 'nullable|in:Laki-laki,Perempuan',
+            'tempat_lahir' => 'nullable|string|max:100',
+            'tanggal_lahir'=> 'nullable|date',
+            'tahun_ajaran_id' => 'nullable|integer',
+        ]);
+
+        $santri->update([
+            'nama_lengkap'    => $request->input('nama_lengkap'),
+            'nis'             => $request->input('nis'),
+            'alamat'          => $request->input('alamat'),
+            'jenis_kelamin'   => $request->input('jenis_kelamin'),
+            'tempat_lahir'    => $request->input('tempat_lahir'),
+            'tanggal_lahir'   => $request->input('tanggal_lahir'),
+            'tahun_ajaran_id' => $request->input('tahun_ajaran_id'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data alumni berhasil diperbarui.',
+            'data'    => $santri->load('tahunAjaran')
+        ]);
+    }
+
+    // Delete alumni record (Admin)
+    public function destroy($id)
+    {
+        $santri = Santri::where('id', $id)->where('status_aktif', 'alumni')->first();
+        if (!$santri) {
+            return response()->json(['success' => false, 'message' => 'Data alumni tidak ditemukan.'], 404);
+        }
+
+        $santri->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data alumni berhasil dihapus.'
+        ]);
+    }
+
+
     // Submit donation (Alumni)
     public function submitDonasi(Request $request)
     {
