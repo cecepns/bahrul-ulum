@@ -33,7 +33,7 @@ const AdminLayout = () => {
     if (path.startsWith("/alumni")) return "Portal Alumni";
     if (path.startsWith("/pengumuman")) return "Pengumuman Resmi";
     if (path.startsWith("/settings")) return "Pengaturan Sistem";
-    return "SIAKAD Bahrul Ulum";
+    return "E-BUM Bahrul Ulum Muliasari";
   };
 
   return (

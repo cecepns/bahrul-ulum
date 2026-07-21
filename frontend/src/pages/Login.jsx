@@ -103,8 +103,9 @@ const Login = () => {
             {/* Logo / Header */}
             <div className="flex flex-col items-center text-center mb-8">
               <img src={logoUrl} alt="Logo" className="w-20 h-20 object-contain mb-4" />
-              <h2 className="text-2xl font-bold text-slate-800">SIAKAD Pondok</h2>
-              <p className="text-sm text-slate-500 mt-1 font-medium">{namaPondok}</p>
+              <h2 className="text-2xl font-bold text-slate-800">E-BUM</h2>
+              <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider mt-0.5">Elektronik Bahrul Ulum Muliasari</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">{namaPondok || 'Pondok Pesantren Bahrul Ulum Muliasari'}</p>
             </div>
 
             {/* Form */}

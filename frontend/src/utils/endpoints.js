@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   },
   SANTRI: {
     LIST: "/santri",
+    SELECT: "/santri/select",
     DETAIL: (id) => `/santri/${id}`,
     CREATE: "/santri",
     UPDATE: (id) => `/santri/${id}`,

@@ -251,8 +251,8 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
           <div className="flex items-center gap-3">
             <img src={logoUrl} alt="Logo" className="w-10 h-10 object-contain ring-4 ring-emerald-500/10 p-0.5 rounded-full" />
             <div>
-              <h1 className="font-black text-white text-sm leading-tight tracking-wider">SIAKAD</h1>
-              <p className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mt-0.5">{namaPondok}</p>
+              <h1 className="font-black text-white text-sm leading-tight tracking-wider">E-BUM</h1>
+              <p className="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mt-0.5">{namaPondok || 'Bahrul Ulum Muliasari'}</p>
             </div>
           </div>
           {/* Close button for mobile */}
@@ -342,7 +342,7 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
 
         {/* Footer info */}
         <div className="p-4 border-t border-slate-800/60 text-center">
-          <p className="text-[10px] text-slate-550 font-bold uppercase tracking-widest text-slate-500">SIAKAD v1.0.0</p>
+          <p className="text-[10px] text-slate-550 font-bold uppercase tracking-widest text-slate-500">E-BUM v1.0.0</p>
         </div>
       </aside>
     </>

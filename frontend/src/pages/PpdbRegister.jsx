@@ -10,11 +10,21 @@ const PpdbRegister = () => {
   const [formData, setFormData] = useState({
     nama_lengkap: "",
     jk: "L",
+    jenjang: "PONDOK",
     tempat_lahir: "",
     tanggal_lahir: "",
+    agama: "Islam",
+    status_keluarga: "Anak Kandung",
+    anak_ke: "1",
+    sekolah_asal: "",
     alamat: "",
     nama_ayah: "",
     nama_ibu: "",
+    pekerjaan_ayah: "",
+    pekerjaan_ibu: "",
+    nama_wali: "",
+    pekerjaan_wali: "",
+    alamat_wali: "",
     hp_ortu: ""
   });
   const [files, setFiles] = useState({
@@ -128,6 +138,31 @@ const PpdbRegister = () => {
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="md:col-span-2 bg-emerald-50/60 p-4 rounded-xl border border-emerald-100 mb-2">
+                <label className="block text-sm font-bold text-emerald-900 mb-2">Pilih Jenjang Pendidikan PPDB *</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { id: "PONDOK", title: "PONDOK", desc: "Pondok Pesantren" },
+                    { id: "MTS", title: "MTS", desc: "Madrasah Tsanawiyah" },
+                    { id: "MA", title: "MA", desc: "Madrasah Aliyah" }
+                  ].map((j) => (
+                    <button
+                      key={j.id}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, jenjang: j.id })}
+                      className={`p-3 rounded-xl border text-center transition-all ${
+                        formData.jenjang === j.id
+                          ? "border-emerald-600 bg-emerald-600 text-white shadow-md font-bold"
+                          : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300"
+                      }`}
+                    >
+                      <div className="text-sm font-black tracking-wider">{j.title}</div>
+                      <div className={`text-[10px] mt-0.5 ${formData.jenjang === j.id ? "text-emerald-100" : "text-slate-500"}`}>{j.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap</label>
                 <input

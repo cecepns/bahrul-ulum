@@ -141,6 +141,7 @@ const PpdbAdmin = () => {
                 <tr className="bg-slate-50 border-b border-slate-100 text-xs font-bold uppercase tracking-wider text-slate-500">
                   <th className="px-6 py-4">No</th>
                   <th className="px-6 py-4">Nama Lengkap</th>
+                  <th className="px-6 py-4">Jenjang</th>
                   <th className="px-6 py-4">JK</th>
                   <th className="px-6 py-4">Wali / HP</th>
                   <th className="px-6 py-4">Tgl Daftar</th>
@@ -154,6 +155,11 @@ const PpdbAdmin = () => {
                     <td className="px-6 py-4">
                       <div className="font-semibold text-slate-800">{candidate.nama_lengkap}</div>
                       <div className="text-xs text-slate-400 mt-0.5">{candidate.tempat_lahir}, {candidate.tanggal_lahir}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-emerald-100 text-emerald-800">
+                        {candidate.jenjang || "PONDOK"}
+                      </span>
                     </td>
                     <td className="px-6 py-4">{candidate.jk === "L" ? "Laki-laki" : "Perempuan"}</td>
                     <td className="px-6 py-4">

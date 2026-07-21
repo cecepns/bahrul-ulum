@@ -108,9 +108,22 @@ const SantriAdmin = () => {
       jk: "L",
       tempat_lahir: "",
       tanggal_lahir: "",
+      agama: "Islam",
+      status_keluarga: "Anak Kandung",
+      anak_ke: "1",
       alamat: "",
+      sekolah_asal: "",
+      di_kelas_diterima: "",
+      tanggal_diterima: "",
       nama_ayah: "",
       nama_ibu: "",
+      alamat_ortu: "",
+      pekerjaan_ayah: "",
+      pekerjaan_ibu: "",
+      nama_wali: "",
+      pekerjaan_wali: "",
+      alamat_wali: "",
+      jenjang: "PONDOK",
       hp_ortu: "",
       kelas_id: "",
       status_aktif: "aktif"
@@ -128,9 +141,22 @@ const SantriAdmin = () => {
       jk: santri.jk,
       tempat_lahir: santri.tempat_lahir,
       tanggal_lahir: santri.tanggal_lahir,
+      agama: santri.agama || "Islam",
+      status_keluarga: santri.status_keluarga || "Anak Kandung",
+      anak_ke: santri.anak_ke || "1",
       alamat: santri.alamat,
+      sekolah_asal: santri.sekolah_asal || "",
+      di_kelas_diterima: santri.di_kelas_diterima || "",
+      tanggal_diterima: santri.tanggal_diterima || "",
       nama_ayah: santri.nama_ayah,
       nama_ibu: santri.nama_ibu,
+      alamat_ortu: santri.alamat_ortu || "",
+      pekerjaan_ayah: santri.pekerjaan_ayah || "",
+      pekerjaan_ibu: santri.pekerjaan_ibu || "",
+      nama_wali: santri.nama_wali || "",
+      pekerjaan_wali: santri.pekerjaan_wali || "",
+      alamat_wali: santri.alamat_wali || "",
+      jenjang: santri.jenjang || "PONDOK",
       hp_ortu: santri.hp_ortu,
       kelas_id: santri.kelas_id || "",
       status_aktif: santri.status_aktif
@@ -443,6 +469,20 @@ const SantriAdmin = () => {
             </div>
 
             <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Jenjang Pendidikan</label>
+              <select
+                name="jenjang"
+                value={formData.jenjang}
+                onChange={handleTextChange}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 text-sm bg-white font-bold text-emerald-800"
+              >
+                <option value="PONDOK">PONDOK</option>
+                <option value="MTS">MTS</option>
+                <option value="MA">MA</option>
+              </select>
+            </div>
+
+            <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">Status Keaktifan</label>
               <select
                 name="status_aktif"
@@ -457,8 +497,78 @@ const SantriAdmin = () => {
               </select>
             </div>
 
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Agama</label>
+              <input
+                type="text"
+                name="agama"
+                value={formData.agama}
+                onChange={handleTextChange}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Status dlm Keluarga</label>
+              <input
+                type="text"
+                name="status_keluarga"
+                value={formData.status_keluarga}
+                onChange={handleTextChange}
+                placeholder="Anak Kandung"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Anak Ke</label>
+              <input
+                type="text"
+                name="anak_ke"
+                value={formData.anak_ke}
+                onChange={handleTextChange}
+                placeholder="1"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Sekolah Asal</label>
+              <input
+                type="text"
+                name="sekolah_asal"
+                value={formData.sekolah_asal}
+                onChange={handleTextChange}
+                placeholder="SMPN 1..."
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Diterima di Kelas</label>
+              <input
+                type="text"
+                name="di_kelas_diterima"
+                value={formData.di_kelas_diterima}
+                onChange={handleTextChange}
+                placeholder="VII / X"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Tanggal Diterima</label>
+              <input
+                type="date"
+                name="tanggal_diterima"
+                value={formData.tanggal_diterima}
+                onChange={handleTextChange}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 text-sm"
+              />
+            </div>
+
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Alamat Lengkap</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Alamat Santri</label>
               <textarea
                 name="alamat"
                 value={formData.alamat}
@@ -475,7 +585,7 @@ const SantriAdmin = () => {
                 name="nama_ayah"
                 value={formData.nama_ayah}
                 onChange={handleTextChange}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-sm"
               />
             </div>
             <div>
@@ -485,17 +595,75 @@ const SantriAdmin = () => {
                 name="nama_ibu"
                 value={formData.nama_ibu}
                 onChange={handleTextChange}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-sm"
               />
             </div>
-            <div className="md:col-span-2">
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Pekerjaan Ayah</label>
+              <input
+                type="text"
+                name="pekerjaan_ayah"
+                value={formData.pekerjaan_ayah}
+                onChange={handleTextChange}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Pekerjaan Ibu</label>
+              <input
+                type="text"
+                name="pekerjaan_ibu"
+                value={formData.pekerjaan_ibu}
+                onChange={handleTextChange}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-sm"
+              />
+            </div>
+
+            <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">No. HP Orang Tua</label>
               <input
                 type="text"
                 name="hp_ortu"
                 value={formData.hp_ortu}
                 onChange={handleTextChange}
-                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Nama Wali Siswa</label>
+              <input
+                type="text"
+                name="nama_wali"
+                value={formData.nama_wali}
+                onChange={handleTextChange}
+                placeholder="-"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Pekerjaan Wali</label>
+              <input
+                type="text"
+                name="pekerjaan_wali"
+                value={formData.pekerjaan_wali}
+                onChange={handleTextChange}
+                placeholder="-"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Alamat Wali Siswa</label>
+              <input
+                type="text"
+                name="alamat_wali"
+                value={formData.alamat_wali}
+                onChange={handleTextChange}
+                placeholder="-"
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none text-sm"
               />
             </div>
 

@@ -31,8 +31,13 @@ const TagihanAdmin = () => {
   // Generate Tagihan Modals
   const [generateOpen, setGenerateOpen] = useState(false);
   const [generateTypeOption, setGenerateTypeOption] = useState(null);
+  const [generateClassOption, setGenerateClassOption] = useState(null);
+  const [generateSantriOption, setGenerateSantriOption] = useState(null);
   const [generateData, setGenerateData] = useState({
     jenis_tagihan_id: "",
+    target_type: "semua",
+    kelas_id: "",
+    santri_id: "",
     tanggal_tagihan: "",
     tanggal_jatuh_tempo: ""
   });
@@ -169,11 +174,16 @@ const TagihanAdmin = () => {
     }
   };
 
-  // Generate Tagihan Rutin
+  // Generate Tagihan
   const openGenerateModal = () => {
     setGenerateTypeOption(null);
+    setGenerateClassOption(null);
+    setGenerateSantriOption(null);
     setGenerateData({
       jenis_tagihan_id: "",
+      target_type: "semua",
+      kelas_id: "",
+      santri_id: "",
       tanggal_tagihan: dateString(0),
       tanggal_jatuh_tempo: dateString(10)
     });
@@ -183,7 +193,17 @@ const TagihanAdmin = () => {
   const handleGenerateSubmit = async (e) => {
     e.preventDefault();
     if (!generateData.jenis_tagihan_id || !generateData.tanggal_tagihan || !generateData.tanggal_jatuh_tempo) {
-      toast.error("Semua kolom generate tagihan wajib diisi.");
+      toast.error("Jenis tagihan dan tanggal terbit / jatuh tempo wajib diisi.");
+      return;
+    }
+
+    if (generateData.target_type === "kelas" && !generateData.kelas_id) {
+      toast.error("Pilih kelas target terlebih dahulu.");
+      return;
+    }
+
+    if (generateData.target_type === "siswa" && !generateData.santri_id) {
+      toast.error("Pilih santri/siswa target terlebih dahulu.");
       return;
     }
 
@@ -637,17 +657,75 @@ const TagihanAdmin = () => {
         </form>
       </Modal>
 
-      {/* Generate Tagihan Rutin Modal */}
+      {/* Generate Tagihan Modal */}
       <Modal
         isOpen={generateOpen}
         onClose={() => setGenerateOpen(false)}
-        title="Generate Tagihan Santri Baru"
+        title="Generate Tagihan Keuangan Santri"
       >
         <form onSubmit={handleGenerateSubmit} className="space-y-4">
           <p className="text-xs text-slate-500 leading-relaxed">
-            Sistem akan secara otomatis menerbitkan tagihan keuangan kepada seluruh santri yang berstatus aktif
-            di tahun ajaran yang sedang berjalan.
+            Pilih jenis tagihan dan tentukan target penerima tagihan (Semua Santri, Per Kelas, atau Per Siswa).
           </p>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Target Penerima Tagihan</label>
+            <div className="grid grid-cols-3 gap-2 p-1 bg-slate-100 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setGenerateData({ ...generateData, target_type: "semua", kelas_id: "", santri_id: "" })}
+                className={`py-2 text-xs font-bold rounded-lg transition-all ${generateData.target_type === "semua" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+              >
+                Semua Santri
+              </button>
+              <button
+                type="button"
+                onClick={() => setGenerateData({ ...generateData, target_type: "kelas", santri_id: "" })}
+                className={`py-2 text-xs font-bold rounded-lg transition-all ${generateData.target_type === "kelas" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+              >
+                Per Kelas
+              </button>
+              <button
+                type="button"
+                onClick={() => setGenerateData({ ...generateData, target_type: "siswa", kelas_id: "" })}
+                className={`py-2 text-xs font-bold rounded-lg transition-all ${generateData.target_type === "siswa" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+              >
+                Per Siswa
+              </button>
+            </div>
+          </div>
+
+          {generateData.target_type === "kelas" && (
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Pilih Kelas Target</label>
+              <SelectApi
+                endpoint={API_ENDPOINTS.KELAS.SELECT}
+                mapOptions={(item) => ({ value: item.id, label: item.nama_kelas })}
+                value={generateClassOption}
+                placeholder="Cari & pilih kelas..."
+                onChange={(option) => {
+                  setGenerateClassOption(option);
+                  setGenerateData({ ...generateData, kelas_id: option ? option.value : "" });
+                }}
+              />
+            </div>
+          )}
+
+          {generateData.target_type === "siswa" && (
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Pilih Santri Target</label>
+              <SelectApi
+                endpoint={API_ENDPOINTS.SANTRI.SELECT}
+                mapOptions={(item) => ({ value: item.id, label: `${item.nama_lengkap} (${item.nis || 'No NIS'}) - ${item.kelas?.nama_kelas || 'Tanpa Kelas'}` })}
+                value={generateSantriOption}
+                placeholder="Cari nama atau NIS santri..."
+                onChange={(option) => {
+                  setGenerateSantriOption(option);
+                  setGenerateData({ ...generateData, santri_id: option ? option.value : "" });
+                }}
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1">Jenis Tagihan SPP / Keuangan</label>
