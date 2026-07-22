@@ -10,7 +10,10 @@ class Santri extends Model
 
     protected $fillable = [
         'user_id', 'nama_lengkap', 'nis', 'nisn', 'jk', 'tempat_lahir',
-        'tanggal_lahir', 'alamat', 'nama_ayah', 'nama_ibu', 'hp_ortu',
+        'tanggal_lahir', 'agama', 'status_keluarga', 'anak_ke', 'alamat',
+        'sekolah_asal', 'di_kelas_diterima', 'tanggal_diterima',
+        'nama_ayah', 'nama_ibu', 'alamat_ortu', 'pekerjaan_ayah', 'pekerjaan_ibu',
+        'nama_wali', 'pekerjaan_wali', 'alamat_wali', 'jenjang', 'hp_ortu',
         'status_ppdb', 'alasan_penolakan', 'tanggal_daftar', 'foto',
         'kk_file', 'akta_file', 'ijazah_file', 'tahun_ajaran_id', 'kelas_id', 'status_aktif'
     ];

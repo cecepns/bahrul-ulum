@@ -291,7 +291,7 @@ const TagihanAdmin = () => {
 
   const downloadKuitansi = (id) => {
     const token = localStorage.getItem("token");
-    const url = `${import.meta.env.VITE_API_URL || "https://api-siakad.kingcreativestudio.my.id"}${API_ENDPOINTS.TAGIHAN.KUITANSI(id)}?token=${token}`;
+    const url = `${import.meta.env.VITE_API_URL || "https://api-ebum.bahrululum.or.id"}${API_ENDPOINTS.TAGIHAN.KUITANSI(id)}?token=${token}`;
     window.open(url, "_blank");
   };
 
@@ -351,7 +351,7 @@ const TagihanAdmin = () => {
     return d.toISOString().split("T")[0];
   };
 
-  const API_URL = import.meta.env.VITE_API_URL || "https://api-siakad.kingcreativestudio.my.id";
+  const API_URL = import.meta.env.VITE_API_URL || "https://api-ebum.bahrululum.or.id";
 
   return (
     <div className="space-y-6">
@@ -458,12 +458,12 @@ const TagihanAdmin = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${bill.status === "lunas"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : bill.status === "menunggu_verifikasi"
-                            ? "bg-amber-50 text-amber-700"
-                            : bill.status === "ditolak"
-                              ? "bg-red-50 text-red-700"
-                              : "bg-slate-100 text-slate-600"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : bill.status === "menunggu_verifikasi"
+                          ? "bg-amber-50 text-amber-700"
+                          : bill.status === "ditolak"
+                            ? "bg-red-50 text-red-700"
+                            : "bg-slate-100 text-slate-600"
                         }`}>
                         {bill.status === "belum_bayar"
                           ? "Belum Bayar"

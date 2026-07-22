@@ -21,7 +21,7 @@ class PpdbController extends Controller
             'nama_ayah' => 'required|string|max:100',
             'nama_ibu' => 'required|string|max:100',
             'hp_ortu' => 'required|string|max:20',
-            // Files are optional on submit, but encouraged
+            'jenjang' => 'nullable|in:PONDOK,MTS,MA',
         ]);
 
         $activeTahunAjaran = TahunAjaran::where('status_aktif', 1)->first();
@@ -34,6 +34,9 @@ class PpdbController extends Controller
 
         $santri = new Santri();
         $santri->fill($request->all());
+        if (!$santri->jenjang) {
+            $santri->jenjang = 'PONDOK';
+        }
         $santri->status_ppdb = 'pending';
         $santri->status_aktif = 'aktif';
         $santri->tanggal_daftar = date('Y-m-d');
@@ -69,14 +72,16 @@ class PpdbController extends Controller
         $search = $request->input('search');
         $limit = $request->input('limit', 10);
         $status = $request->input('status'); // pending, approved, rejected
+        $jenjang = $request->input('jenjang');
 
         $query = Santri::with('tahunAjaran');
 
         if ($status) {
             $query->where('status_ppdb', $status);
-        } else {
-            // By default, list only pending or all registrations
-            // We can show all for the PPDB manager
+        }
+
+        if ($jenjang) {
+            $query->where('jenjang', $jenjang);
         }
 
         if ($search) {

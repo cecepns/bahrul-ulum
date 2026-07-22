@@ -8,6 +8,8 @@ use App\Models\Kelas;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Illuminate\Support\Str;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
 
 class SantriController extends Controller
 {
@@ -59,6 +61,27 @@ class SantriController extends Controller
         ]);
     }
 
+    // Search/Select active santri list for dropdowns
+    public function selectList(Request $request)
+    {
+        $search = $request->input('search');
+        $query = Santri::with('kelas')->where('status_aktif', 'aktif')->where('status_ppdb', 'approved');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama_lengkap', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%");
+            });
+        }
+
+        $santris = $query->orderBy('nama_lengkap', 'asc')->limit(50)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $santris
+        ]);
+    }
+
     // Get specific santri detail
     public function show($id)
     {
@@ -92,6 +115,7 @@ class SantriController extends Controller
             'hp_ortu' => 'required|string|max:20',
             'tahun_ajaran_id' => 'nullable|integer',
             'kelas_id' => 'nullable|integer',
+            'jenjang' => 'nullable|in:PONDOK,MTS,MA',
         ]);
 
         $activeTA = \App\Models\TahunAjaran::where('status_aktif', 1)->first();
@@ -109,6 +133,9 @@ class SantriController extends Controller
         $santri->status_ppdb = 'approved';
         $santri->status_aktif = 'aktif';
         $santri->tanggal_daftar = date('Y-m-d');
+        if (!$santri->jenjang) {
+            $santri->jenjang = 'PONDOK';
+        }
 
         // Handle file uploads
         $uploadPath = base_path('public/uploads-siakad-bahrul-ulum');
@@ -157,7 +184,8 @@ class SantriController extends Controller
             'nama_ibu' => 'required|string|max:100',
             'hp_ortu' => 'required|string|max:20',
             'kelas_id' => 'nullable|integer',
-            'status_aktif' => 'required|in:aktif,alumni,mutasi,keluar'
+            'status_aktif' => 'required|in:aktif,alumni,mutasi,keluar',
+            'jenjang' => 'nullable|in:PONDOK,MTS,MA',
         ]);
 
         $santri->fill($request->all());
@@ -216,22 +244,39 @@ class SantriController extends Controller
             ], 404);
         }
 
-        $settings = \App\Models\Setting::all()->pluck('value', 'key');
-        $namaPondok = $settings['nama_pondok'] ?? 'Pondok Pesantren Bahrul Ulum Jombang';
-        $alamatPondok = $settings['alamat_pondok'] ?? 'Jl. KH. Wahab Hasbullah, Tambakberas, Jombang, Jawa Timur';
-        $noTelp = $settings['no_telp'] ?? '0321-861000';
-        $logoPondok = $settings['logo_pondok'] ?? 'logo.png';
+        // Generate QR Code using chillerlan/php-qrcode
+        $qrBase64 = '';
+        try {
+            if (class_exists(\chillerlan\QRCode\QROptions::class) && class_exists(\chillerlan\QRCode\QRCode::class)) {
+                $qrOptions = new \chillerlan\QRCode\QROptions([
+                    'outputBase64' => true,
+                    'outputType'   => \chillerlan\QRCode\QRCode::OUTPUT_MARKUP_SVG,
+                    'eccLevel'     => \chillerlan\QRCode\QRCode::ECC_L,
+                ]);
+                $qrDataString = "NIS: " . ($santri->nis ?? '-') . " | NISN: " . ($santri->nisn ?? '-') . " | Nama: " . $santri->nama_lengkap . " | MAS BAHRUL ULUM MULIASARI";
+                $qrBase64 = (new \chillerlan\QRCode\QRCode($qrOptions))->render($qrDataString);
+            }
+        } catch (\Throwable $e) {
+            $qrBase64 = '';
+        }
 
-        $logoBase64 = '';
-        $logoPath = base_path('public/' . $logoPondok);
-        if (!file_exists($logoPath)) {
-            $logoPath = base_path('public/logo.png');
-        }
-        if (file_exists($logoPath)) {
-            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $imgData = file_get_contents($logoPath);
-            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($imgData);
-        }
+        // Format dates
+        $bulanIndo = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        $tglLahir = date('d', strtotime($santri->tanggal_lahir)) . ' ' .
+                    ($bulanIndo[(int)date('m', strtotime($santri->tanggal_lahir))] ?? date('F', strtotime($santri->tanggal_lahir))) . ' ' .
+                    date('Y', strtotime($santri->tanggal_lahir));
+
+        $tglDiterimaRaw = $santri->tanggal_diterima ?? $santri->tanggal_daftar ?? date('Y-m-d');
+        $tglDiterima = date('d', strtotime($tglDiterimaRaw)) . ' ' .
+                       ($bulanIndo[(int)date('m', strtotime($tglDiterimaRaw))] ?? date('F', strtotime($tglDiterimaRaw))) . ' ' .
+                       date('Y', strtotime($tglDiterimaRaw));
+
+        $tglCetak = date('d') . ' ' . ($bulanIndo[(int)date('m')] ?? date('F')) . ' ' . date('Y');
 
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
@@ -244,119 +289,250 @@ class SantriController extends Controller
             $type = pathinfo($path, PATHINFO_EXTENSION);
             $data = file_get_contents($path);
             $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-            $fotoHtml = '<img src="' . $base64 . '" style="width: 120px; height: 150px; border: 1px solid #ccc; object-fit: cover;" />';
+            $fotoHtml = '<img src="' . $base64 . '" style="width: 100%; height: 100%; object-fit: cover;" />';
         } else {
-            $fotoHtml = '<div style="width: 120px; height: 150px; border: 1px solid #ccc; text-align: center; line-height: 150px; color: #999;">FOTO 3X4</div>';
+            $fotoHtml = '<div style="text-align: center; margin-top: 45px; font-size: 11px; color: #555;">Foto<br/>3x4</div>';
+        }
+
+        // Kop Header Logo (Kemenag / Bahrul Ulum) & Dynamic Settings
+        $settings = \App\Models\Setting::all()->pluck('value', 'key');
+        $logoSetting = $settings['logo_pondok'] ?? 'logo.png';
+        $alamatPondok = $settings['alamat_pondok'] ?? 'Jl. Tanjung Api-api Km.42 Muliasari, Kecamatan Tanjung Lago, Kabupaten Banyuasin - Sumatera Selatan';
+        $noTelp = $settings['no_telp'] ?? '081234567890';
+        $kepalaMadrasah = $settings['kepala_madrasah'] ?? 'ROHMAN, S.Pd.I, M.Si';
+        $nipKepala = $settings['nip_kepala'] ?? '038201207150004';
+        $kotaTerbit = $settings['kota_terbit'] ?? 'Tanjung Lago';
+
+        $logoBase64 = '';
+        $possiblePaths = [
+            base_path('public/' . $logoSetting),
+            base_path('public/logo.png'),
+            base_path('../logo.png'),
+            base_path('../frontend/public/logo.png'),
+        ];
+
+        foreach ($possiblePaths as $path) {
+            if ($path && file_exists($path) && !is_dir($path)) {
+                $type = pathinfo($path, PATHINFO_EXTENSION);
+                $imgData = file_get_contents($path);
+                $logoBase64 = 'data:image/' . ($type === 'svg' ? 'svg+xml' : $type) . ';base64,' . base64_encode($imgData);
+                break;
+            }
+        }
+
+        // School/Madrasah Header title based on jenjang
+        $headerMadrasah = "MAS BAHRUL ULUM";
+        if ($santri->jenjang === 'MTS') {
+            $headerMadrasah = "MTS BAHRUL ULUM";
+        } else if ($santri->jenjang === 'PONDOK') {
+            $headerMadrasah = "PONPES BAHRUL ULUM";
         }
 
         $html = '
+        <!DOCTYPE html>
         <html>
         <head>
+            <meta charset="utf-8">
             <style>
-                body { font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333; }
-                .title { text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 25px; text-decoration: underline; text-transform: uppercase; }
-                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                td { padding: 6px 4px; vertical-align: top; }
-                .label { width: 30%; font-weight: bold; }
-                .separator { width: 3%; text-align: center; }
-                .value { width: 67%; }
-                .section-title { font-weight: bold; font-size: 15px; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 20px; margin-bottom: 10px; color: #1b5e20; }
-                .foto-container { float: right; margin-top: 30px; margin-right: 50px; }
+                @page { margin: 25px 35px; }
+                body { font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.35; color: #000; }
+                .kop-table { width: 100%; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 2px; border-collapse: collapse; }
+                .kop-line-2 { border-bottom: 1px solid #000; margin-bottom: 15px; }
+                .header-title { text-align: center; }
+                .header-title h3 { margin: 0; font-size: 13pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+                .header-title h2 { margin: 2px 0 0 0; font-size: 16pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+                .header-title p { margin: 2px 0 0 0; font-size: 10pt; font-style: italic; }
+                .doc-title { text-align: center; font-size: 14pt; font-weight: bold; margin-top: 15px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+                .detail-table { width: 100%; border-collapse: collapse; font-size: 11pt; }
+                .detail-table td { padding: 3px 2px; vertical-align: top; }
+                .num-col { width: 28px; text-align: left; }
+                .label-col { width: 230px; }
+                .sep-col { width: 15px; text-align: center; }
+                .sub-num { padding-left: 15px; width: 20px; }
+                
+                .footer-container { margin-top: 30px; width: 100%; }
+                .signature-box { float: right; width: 260px; text-align: center; font-size: 11pt; }
+                .bottom-left-box { float: left; width: 300px; margin-top: 10px; }
+                .photo-frame { display: inline-block; width: 90px; height: 120px; border: 1px solid #000; vertical-align: bottom; margin-left: 15px; }
+                .qr-frame { display: inline-block; width: 100px; height: 100px; vertical-align: bottom; }
+                .clear { clear: both; }
             </style>
         </head>
         <body>
-            <table style="width: 100%; border-bottom: 3px double #000; padding-bottom: 12px; margin-bottom: 25px; border-collapse: collapse;">
+            <table class="kop-table">
                 <tr>
-                    <td style="width: 15%; text-align: left; vertical-align: middle; padding: 0;">
-                        ' . ($logoBase64 ? '<img src="' . $logoBase64 . '" style="height: 60px; max-width: 80px;" />' : '') . '
+                    <td style="width: 15%; text-align: center; vertical-align: middle;">
+                        ' . ($logoBase64 ? '<img src="' . $logoBase64 . '" style="height: 75px; width: auto;" />' : '') . '
                     </td>
-                    <td style="width: 85%; text-align: center; vertical-align: middle; padding: 0 50px 0 0;">
-                        <h2 style="margin: 0; font-size: 16px; font-weight: bold; text-transform: uppercase; color: #111;">' . htmlspecialchars($namaPondok) . '</h2>
-                        <p style="margin: 5px 0 0 0; font-size: 10px; color: #555; font-weight: normal; line-height: 1.3;">' . htmlspecialchars($alamatPondok) . ' | Telp: ' . htmlspecialchars($noTelp) . '</p>
+                    <td style="width: 85%; text-align: center; vertical-align: middle;" class="header-title">
+                        <h3>KEMENTERIAN AGAMA REPUBLIK INDONESIA</h3>
+                        <h2>' . $headerMadrasah . '</h2>
+                        <p>' . htmlspecialchars($alamatPondok) . ($noTelp ? ' | Telp: ' . htmlspecialchars($noTelp) : '') . '</p>
                     </td>
                 </tr>
             </table>
-            
-            <div class="title">Buku Induk Santri</div>
+            <div class="kop-line-2"></div>
 
-            <div class="section-title">A. Keterangan Pribadi Santri</div>
-            <table>
+            <div class="doc-title">IDENTITAS PESERTA DIDIK</div>
+
+            <table class="detail-table">
                 <tr>
-                    <td class="label">Nama Lengkap</td>
-                    <td class="separator">:</td>
-                    <td class="value">' . htmlspecialchars($santri->nama_lengkap) . '</td>
+                    <td class="num-col">1.</td>
+                    <td class="label-col">Nama Peserta Didik</td>
+                    <td class="sep-col">:</td>
+                    <td>' . strtoupper(htmlspecialchars($santri->nama_lengkap)) . '</td>
                 </tr>
                 <tr>
-                    <td class="label">Nomor Induk Santri (NIS)</td>
-                    <td class="separator">:</td>
-                    <td class="value">' . htmlspecialchars($santri->nis ?? '-') . '</td>
+                    <td class="num-col">2.</td>
+                    <td class="label-col">NIS</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->nis ?? '-') . '</td>
                 </tr>
                 <tr>
-                    <td class="label">NISN</td>
-                    <td class="separator">:</td>
-                    <td class="value">' . htmlspecialchars($santri->nisn ?? '-') . '</td>
+                    <td class="num-col">3.</td>
+                    <td class="label-col">NISN</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->nisn ?? '-') . '</td>
                 </tr>
                 <tr>
-                    <td class="label">Jenis Kelamin</td>
-                    <td class="separator">:</td>
-                    <td class="value">' . ($santri->jk === 'L' ? 'Laki-laki' : 'Perempuan') . '</td>
+                    <td class="num-col">4.</td>
+                    <td class="label-col">Tempat Tanggal Lahir</td>
+                    <td class="sep-col">:</td>
+                    <td>' . strtoupper(htmlspecialchars($santri->tempat_lahir)) . ', ' . $tglLahir . '</td>
                 </tr>
                 <tr>
-                    <td class="label">Tempat, Tanggal Lahir</td>
-                    <td class="separator">:</td>
-                    <td class="value">' . htmlspecialchars($santri->tempat_lahir) . ', ' . date('d F Y', strtotime($santri->tanggal_lahir)) . '</td>
+                    <td class="num-col">5.</td>
+                    <td class="label-col">Jenis Kelamin</td>
+                    <td class="sep-col">:</td>
+                    <td>' . ($santri->jk === 'L' ? 'Laki-laki' : 'Perempuan') . '</td>
                 </tr>
                 <tr>
-                    <td class="label">Alamat Lengkap</td>
-                    <td class="separator">:</td>
-                    <td class="value">' . nl2br(htmlspecialchars($santri->alamat)) . '</td>
+                    <td class="num-col">6.</td>
+                    <td class="label-col">Agama</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->agama ?? 'Islam') . '</td>
                 </tr>
                 <tr>
-                    <td class="label">Kelas Saat Ini</td>
-                    <td class="separator">:</td>
-                    <td class="value">' . htmlspecialchars($santri->kelas->nama_kelas ?? 'Belum Ditentukan') . '</td>
+                    <td class="num-col">7.</td>
+                    <td class="label-col">Status dalam Keluarga</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->status_keluarga ?? 'Anak Kandung') . '</td>
                 </tr>
                 <tr>
-                    <td class="label">Tahun Masuk</td>
-                    <td class="separator">:</td>
-                    <td class="value">' . htmlspecialchars($santri->tahunAjaran->tahun ?? '-') . '</td>
+                    <td class="num-col">8.</td>
+                    <td class="label-col">Anak ke</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->anak_ke ?? '1') . '</td>
+                </tr>
+                <tr>
+                    <td class="num-col">9.</td>
+                    <td class="label-col">Alamat Peserta Didik</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->alamat) . '</td>
+                </tr>
+                <tr>
+                    <td class="num-col">10.</td>
+                    <td class="label-col">Nomor Telepon Rumah/HP</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->hp_ortu) . '</td>
+                </tr>
+                <tr>
+                    <td class="num-col">11.</td>
+                    <td class="label-col">Sekolah Asal</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->sekolah_asal ?? '-') . '</td>
+                </tr>
+                <tr>
+                    <td class="num-col">12.</td>
+                    <td colspan="3">Diterima di sekolah ini</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="label-col" style="padding-left: 15px;">a. Di kelas</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->di_kelas_diterima ?? $santri->kelas->nama_kelas ?? '-') . '</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="label-col" style="padding-left: 15px;">b. Pada tanggal</td>
+                    <td class="sep-col">:</td>
+                    <td>' . $tglDiterima . '</td>
+                </tr>
+                <tr>
+                    <td class="num-col">13.</td>
+                    <td colspan="3">Nama Orang Tua</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="label-col" style="padding-left: 15px;">a. Ayah</td>
+                    <td class="sep-col">:</td>
+                    <td>' . strtoupper(htmlspecialchars($santri->nama_ayah)) . '</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="label-col" style="padding-left: 15px;">b. Ibu</td>
+                    <td class="sep-col">:</td>
+                    <td>' . strtoupper(htmlspecialchars($santri->nama_ibu)) . '</td>
+                </tr>
+                <tr>
+                    <td class="num-col">14.</td>
+                    <td class="label-col">Alamat Orang Tua</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->alamat_ortu ?? $santri->alamat) . '</td>
+                </tr>
+                <tr>
+                    <td class="num-col">15.</td>
+                    <td colspan="3">Pekerjaan Orang Tua</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="label-col" style="padding-left: 15px;">a. Ayah</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->pekerjaan_ayah ?? '-') . '</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="label-col" style="padding-left: 15px;">b. Ibu</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->pekerjaan_ibu ?? '-') . '</td>
+                </tr>
+                <tr>
+                    <td class="num-col">16.</td>
+                    <td class="label-col">Nama Wali Siswa</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->nama_wali ?? '-') . '</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="label-col" style="padding-left: 15px;">Pekerjaan Wali</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->pekerjaan_wali ?? '-') . '</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="label-col" style="padding-left: 15px;">Alamat Wali Siswa</td>
+                    <td class="sep-col">:</td>
+                    <td>' . htmlspecialchars($santri->alamat_wali ?? '-') . '</td>
                 </tr>
             </table>
 
-            <div class="section-title">B. Keterangan Orang Tua / Wali</div>
-            <table>
-                <tr>
-                    <td class="label">Nama Ayah Kandung</td>
-                    <td class="separator">:</td>
-                    <td class="value">' . htmlspecialchars($santri->nama_ayah) . '</td>
-                </tr>
-                <tr>
-                    <td class="label">Nama Ibu Kandung</td>
-                    <td class="separator">:</td>
-                    <td class="value">' . htmlspecialchars($santri->nama_ibu) . '</td>
-                </tr>
-                <tr>
-                    <td class="label">No. HP Orang Tua</td>
-                    <td class="separator">:</td>
-                    <td class="value">' . htmlspecialchars($santri->hp_ortu) . '</td>
-                </tr>
-            </table>
+            <div class="footer-container">
+                <div class="signature-box">
+                    ' . htmlspecialchars($kotaTerbit) . ', ' . $tglCetak . '<br/>
+                    Kepala Madrasah<br/><br/><br/><br/><br/>
+                    <u><strong>' . htmlspecialchars($kepalaMadrasah) . '</strong></u><br/>
+                    ' . ($nipKepala ? 'NIP. ' . htmlspecialchars($nipKepala) : '') . '
+                </div>
 
-            <div class="foto-container">
-                ' . $fotoHtml . '
-            </div>
-            
-            <div style="clear: both; margin-top: 50px;">
-                <table style="border: none;">
-                    <tr>
-                        <td style="width: 60%;"></td>
-                        <td style="width: 40%; text-align: center;">
-                            Jombang, ' . date('d F Y') . '<br/>
-                            Kepala Pengurus Pondok,<br/><br/><br/><br/>
-                            <strong>Ustadz H. Akhmad Yazid, M.Pd</strong>
-                        </td>
-                    </tr>
-                </table>
+                <div class="bottom-left-box">
+                    <div class="qr-frame">
+                        ' . ($qrBase64 ? '<img src="' . $qrBase64 . '" style="width: 100px; height: 100px;" />' : '') . '
+                    </div>
+                    <div class="photo-frame">
+                        ' . $fotoHtml . '
+                    </div>
+                </div>
+                <div class="clear"></div>
             </div>
         </body>
         </html>

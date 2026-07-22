@@ -51,6 +51,7 @@ $router->group(['prefix' => 'api'], function () use ($router) {
 
         // Santri
         $router->get('santri', 'SantriController@index');
+        $router->get('santri/select', 'SantriController@selectList');
         $router->get('santri/export/csv', [
             'middleware' => 'role:superadmin,admin',
             'uses' => 'SantriController@exportExcel'

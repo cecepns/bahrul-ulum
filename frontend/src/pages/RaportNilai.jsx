@@ -136,7 +136,7 @@ const RaportNilai = () => {
   const printRaport = () => {
     if (!selectedStudent) return;
     const token = localStorage.getItem("token");
-    const url = `${import.meta.env.VITE_API_URL || "https://api-siakad.kingcreativestudio.my.id"}${API_ENDPOINTS.NILAI.PRINT_RAPORT(selectedStudent.id)}?token=${token}`;
+    const url = `${import.meta.env.VITE_API_URL || "https://api-ebum.bahrululum.or.id"}${API_ENDPOINTS.NILAI.PRINT_RAPORT(selectedStudent.id)}?token=${token}`;
     window.open(url, "_blank");
   };
 
@@ -182,8 +182,8 @@ const RaportNilai = () => {
                       key={student.id}
                       onClick={() => loadStudentScores(student)}
                       className={`w-full text-left px-4 py-3 rounded-xl transition-all font-semibold text-sm flex flex-col gap-0.5 ${isCurrent
-                          ? "bg-emerald-50 text-emerald-700 shadow-sm border-l-4 border-emerald-500 rounded-l-none"
-                          : "text-slate-600 hover:bg-slate-50"
+                        ? "bg-emerald-50 text-emerald-700 shadow-sm border-l-4 border-emerald-500 rounded-l-none"
+                        : "text-slate-600 hover:bg-slate-50"
                         }`}
                     >
                       <span>{student.nama_lengkap}</span>

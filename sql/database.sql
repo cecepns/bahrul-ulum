@@ -90,9 +90,22 @@ CREATE TABLE IF NOT EXISTS `santri` (
   `jk` ENUM('L', 'P') NOT NULL,
   `tempat_lahir` VARCHAR(100) NOT NULL,
   `tanggal_lahir` DATE NOT NULL,
+  `agama` VARCHAR(50) DEFAULT 'Islam',
+  `status_keluarga` VARCHAR(50) DEFAULT 'Anak Kandung',
+  `anak_ke` VARCHAR(10) DEFAULT '1',
   `alamat` TEXT NOT NULL,
+  `sekolah_asal` VARCHAR(150) DEFAULT NULL,
+  `di_kelas_diterima` VARCHAR(50) DEFAULT NULL,
+  `tanggal_diterima` DATE DEFAULT NULL,
   `nama_ayah` VARCHAR(100) NOT NULL,
   `nama_ibu` VARCHAR(100) NOT NULL,
+  `alamat_ortu` TEXT DEFAULT NULL,
+  `pekerjaan_ayah` VARCHAR(100) DEFAULT NULL,
+  `pekerjaan_ibu` VARCHAR(100) DEFAULT NULL,
+  `nama_wali` VARCHAR(100) DEFAULT NULL,
+  `pekerjaan_wali` VARCHAR(100) DEFAULT NULL,
+  `alamat_wali` TEXT DEFAULT NULL,
+  `jenjang` ENUM('PONDOK', 'MTS', 'MA') NOT NULL DEFAULT 'PONDOK',
   `hp_ortu` VARCHAR(20) NOT NULL,
   `status_ppdb` ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
   `alasan_penolakan` TEXT DEFAULT NULL,
@@ -111,11 +124,11 @@ CREATE TABLE IF NOT EXISTS `santri` (
   FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `santri` (`id`, `user_id`, `nama_lengkap`, `nis`, `nisn`, `jk`, `tempat_lahir`, `tanggal_lahir`, `alamat`, `nama_ayah`, `nama_ibu`, `hp_ortu`, `status_ppdb`, `tanggal_daftar`, `tahun_ajaran_id`, `kelas_id`, `status_aktif`) VALUES
-(1, 3, 'Ahmad Riza', '20250001', '0123456789', 'L', 'Jombang', '2012-05-15', 'Jl. KH. Wahab Hasbullah No. 10, Tambakberas, Jombang', 'H. Solihin', 'Hj. Fatimah', '081234567890', 'approved', '2025-06-01', 1, 1, 'aktif'),
-(2, NULL, 'Zahra Aulia', '20250002', '0123456788', 'P', 'Surabaya', '2012-09-20', 'Jl. Ahmad Yani No. 45, Surabaya', 'Budi Santoso', 'Siti Rahma', '085765432100', 'approved', '2025-06-02', 1, 2, 'aktif'),
-(3, 4, 'Fatimah Az-Zahra', '20220015', '0098765432', 'P', 'Kediri', '2008-01-10', 'Jl. Pemuda No. 12, Kediri', 'Hasan Basri', 'Khairunnisa', '089887766554', 'approved', '2022-06-10', 1, 4, 'alumni'),
-(4, NULL, 'Muhammad Rizky', NULL, NULL, 'L', 'Malang', '2013-02-18', 'Jl. Ijen No. 15, Malang', 'Rudi Hermawan', 'Dewi Lestari', '082122334455', 'pending', '2026-07-15', 1, NULL, 'aktif');
+INSERT INTO `santri` (`id`, `user_id`, `nama_lengkap`, `nis`, `nisn`, `jk`, `tempat_lahir`, `tanggal_lahir`, `agama`, `status_keluarga`, `anak_ke`, `alamat`, `sekolah_asal`, `di_kelas_diterima`, `tanggal_diterima`, `nama_ayah`, `nama_ibu`, `alamat_ortu`, `pekerjaan_ayah`, `pekerjaan_ibu`, `nama_wali`, `pekerjaan_wali`, `alamat_wali`, `jenjang`, `hp_ortu`, `status_ppdb`, `tanggal_daftar`, `tahun_ajaran_id`, `kelas_id`, `status_aktif`) VALUES
+(1, 3, 'Ahmad Riza', '20250001', '0123456789', 'L', 'Banyuasin', '2012-05-15', 'Islam', 'Anak Kandung', '1', 'Jl. Tanjung Api-api KM.42, Banyuasin', 'SMPN 1 Tanjung Lago', 'VII', '2025-07-15', 'H. Solihin', 'Hj. Fatimah', 'Jl. Tanjung Api-api KM.42, Banyuasin', 'Wiraswasta', 'Ibu Rumah Tangga', '-', '-', '-', 'MA', '081234567890', 'approved', '2025-06-01', 1, 1, 'aktif'),
+(2, NULL, 'Zahra Aulia', '20250002', '0123456788', 'P', 'Palembang', '2012-09-20', 'Islam', 'Anak Kandung', '2', 'Jl. Merdeka No. 45, Palembang', 'SDN 5 Palembang', 'VII', '2025-07-15', 'Budi Santoso', 'Siti Rahma', 'Jl. Merdeka No. 45, Palembang', 'PNS', 'Guru', '-', '-', '-', 'MTS', '085765432100', 'approved', '2025-06-02', 1, 2, 'aktif'),
+(3, 4, 'Fatimah Az-Zahra', '20220015', '0098765432', 'P', 'Banyuasin', '2008-01-10', 'Islam', 'Anak Kandung', '1', 'Jl. Pemuda No. 12, Banyuasin', 'MTS Bahrul Ulum', 'X', '2022-07-15', 'Hasan Basri', 'Khairunnisa', 'Jl. Pemuda No. 12, Banyuasin', 'Petani', 'Ibu Rumah Tangga', '-', '-', '-', 'PONDOK', '089887766554', 'approved', '2022-06-10', 1, 4, 'alumni'),
+(4, NULL, 'Muhammad Rizky', NULL, NULL, 'L', 'Banyuasin', '2013-02-18', 'Islam', 'Anak Kandung', '3', 'Jl. Sudirman No. 15, Banyuasin', 'SDN 2 Tanjung Lago', 'VII', '2026-07-15', 'Rudi Hermawan', 'Dewi Lestari', 'Jl. Sudirman No. 15, Banyuasin', 'Pedagang', 'Ibu Rumah Tangga', '-', '-', '-', 'MTS', '082122334455', 'pending', '2026-07-15', 1, NULL, 'aktif');
 
 -- --------------------------------------------------------
 -- 6. Table `nilai_raport`
@@ -332,11 +345,14 @@ CREATE TABLE IF NOT EXISTS `settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `settings` (`key`, `value`) VALUES
-('nama_pondok', 'Pondok Pesantren Bahrul Ulum Jombang'),
-('alamat_pondok', 'Jl. KH. Wahab Hasbullah, Tambakberas, Jombang, Jawa Timur'),
-('no_telp', '0321-861000'),
+('nama_pondok', 'Pondok Pesantren Bahrul Ulum Muliasari'),
+('alamat_pondok', 'Jl. Tanjung Api-api Km.42 Muliasari, Kecamatan Tanjung Lago, Kabupaten Banyuasin - Sumatera Selatan'),
+('no_telp', '081234567890'),
 ('email_pondok', 'info@bahrulum.sch.id'),
 ('logo_pondok', 'logo.png'),
+('kepala_madrasah', 'ROHMAN, S.Pd.I, M.Si'),
+('nip_kepala', '038201207150004'),
+('kota_terbit', 'Tanjung Lago'),
 ('rekening_spp', 'Bank Syariah Indonesia (BSI) a.n Bahrul Ulum - 7123456789'),
 ('rekening_pembangunan', 'Bank Mandiri a.n Yayasan Bahrul Ulum - 1420007654321');
 

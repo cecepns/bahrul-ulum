@@ -218,20 +218,28 @@ class RaportController extends Controller
             ->get();
 
         $settings = \App\Models\Setting::all()->pluck('value', 'key');
-        $namaPondok = $settings['nama_pondok'] ?? 'Pondok Pesantren Bahrul Ulum Jombang';
-        $alamatPondok = $settings['alamat_pondok'] ?? 'Jl. KH. Wahab Hasbullah, Tambakberas, Jombang, Jawa Timur';
-        $noTelp = $settings['no_telp'] ?? '0321-861000';
+        $namaPondok = $settings['nama_pondok'] ?? 'Pondok Pesantren Bahrul Ulum Muliasari';
+        $alamatPondok = $settings['alamat_pondok'] ?? 'Jl. Tanjung Api-api Km.42 Muliasari, Banyuasin';
+        $noTelp = $settings['no_telp'] ?? '081234567890';
         $logoPondok = $settings['logo_pondok'] ?? 'logo.png';
+        $kepalaMadrasah = $settings['kepala_madrasah'] ?? 'ROHMAN, S.Pd.I, M.Si';
+        $kotaTerbit = $settings['kota_terbit'] ?? 'Tanjung Lago';
 
         $logoBase64 = '';
-        $logoPath = base_path('public/' . $logoPondok);
-        if (!file_exists($logoPath)) {
-            $logoPath = base_path('public/logo.png');
-        }
-        if (file_exists($logoPath)) {
-            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $imgData = file_get_contents($logoPath);
-            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($imgData);
+        $possiblePaths = [
+            base_path('public/' . $logoPondok),
+            base_path('public/logo.png'),
+            base_path('../logo.png'),
+            base_path('../frontend/public/logo.png'),
+        ];
+
+        foreach ($possiblePaths as $path) {
+            if ($path && file_exists($path) && !is_dir($path)) {
+                $type = pathinfo($path, PATHINFO_EXTENSION);
+                $imgData = file_get_contents($path);
+                $logoBase64 = 'data:image/' . ($type === 'svg' ? 'svg+xml' : $type) . ';base64,' . base64_encode($imgData);
+                break;
+            }
         }
 
         $options = new Options();
@@ -346,9 +354,9 @@ class RaportController extends Controller
                             <strong>' . htmlspecialchars($santri->kelas->wali_kelas ?? '_________________') . '</strong>
                         </td>
                         <td style="width: 34%; text-align: center; vertical-align: top;">
-                            Jombang, ' . date('d F Y') . '<br/>
+                            ' . htmlspecialchars($kotaTerbit) . ', ' . date('d F Y') . '<br/>
                             Kepala Madrasah / Pondok,<br/><br/><br/><br/>
-                            <strong>Ustadz H. Akhmad Yazid, M.Pd</strong>
+                            <strong>' . htmlspecialchars($kepalaMadrasah) . '</strong>
                         </td>
                     </tr>
                 </table>

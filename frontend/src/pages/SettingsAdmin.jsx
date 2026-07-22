@@ -47,6 +47,9 @@ const SettingsAdmin = () => {
     alamat_pondok: "",
     no_telp: "",
     email_pondok: "",
+    kepala_madrasah: "",
+    nip_kepala: "",
+    kota_terbit: "",
     rekening_spp: "",
     rekening_pembangunan: "",
     logo_pondok: ""
@@ -92,12 +95,15 @@ const SettingsAdmin = () => {
           alamat_pondok: res.data.alamat_pondok || "",
           no_telp: res.data.no_telp || "",
           email_pondok: res.data.email_pondok || "",
+          kepala_madrasah: res.data.kepala_madrasah || "",
+          nip_kepala: res.data.nip_kepala || "",
+          kota_terbit: res.data.kota_terbit || "",
           rekening_spp: res.data.rekening_spp || "",
           rekening_pembangunan: res.data.rekening_pembangunan || "",
           logo_pondok: res.data.logo_pondok || ""
         });
         if (res.data.logo_pondok) {
-          const API_URL = import.meta.env.VITE_API_URL || "https://api-siakad.kingcreativestudio.my.id";
+          const API_URL = import.meta.env.VITE_API_URL || "https://api-ebum.bahrululum.or.id";
           setLogoPreview(`${API_URL}/${res.data.logo_pondok}`);
         } else {
           setLogoPreview("");
@@ -282,8 +288,8 @@ const SettingsAdmin = () => {
         <button
           onClick={() => setActiveMenu("general")}
           className={`w-full text-left px-4 py-3 rounded-xl transition-all font-semibold text-sm flex items-center gap-2 ${activeMenu === "general"
-              ? "bg-emerald-50 text-emerald-700 font-bold"
-              : "text-slate-650 text-slate-600 hover:bg-slate-50"
+            ? "bg-emerald-50 text-emerald-700 font-bold"
+            : "text-slate-650 text-slate-600 hover:bg-slate-50"
             }`}
         >
           <School size={16} /> Identitas Pondok
@@ -291,8 +297,8 @@ const SettingsAdmin = () => {
         <button
           onClick={() => setActiveMenu("academic")}
           className={`w-full text-left px-4 py-3 rounded-xl transition-all font-semibold text-sm flex items-center gap-2 ${activeMenu === "academic"
-              ? "bg-emerald-50 text-emerald-700 font-bold"
-              : "text-slate-650 text-slate-600 hover:bg-slate-50"
+            ? "bg-emerald-50 text-emerald-700 font-bold"
+            : "text-slate-650 text-slate-600 hover:bg-slate-50"
             }`}
         >
           <Calendar size={16} /> Tahun Ajaran
@@ -300,8 +306,8 @@ const SettingsAdmin = () => {
         <button
           onClick={() => setActiveMenu("announcements")}
           className={`w-full text-left px-4 py-3 rounded-xl transition-all font-semibold text-sm flex items-center gap-2 ${activeMenu === "announcements"
-              ? "bg-emerald-50 text-emerald-700 font-bold"
-              : "text-slate-650 text-slate-600 hover:bg-slate-50"
+            ? "bg-emerald-50 text-emerald-700 font-bold"
+            : "text-slate-650 text-slate-600 hover:bg-slate-50"
             }`}
         >
           <Volume2 size={16} /> Pengumuman Resmi
@@ -389,6 +395,39 @@ const SettingsAdmin = () => {
                     value={settings.email_pondok}
                     onChange={(e) => setSettings({ ...settings, email_pondok: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Nama Kepala Madrasah / Pondok</label>
+                  <input
+                    type="text"
+                    value={settings.kepala_madrasah}
+                    onChange={(e) => setSettings({ ...settings, kepala_madrasah: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-medium"
+                    placeholder="ROHMAN, S.Pd.I, M.Si"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">NIP Kepala Madrasah</label>
+                  <input
+                    type="text"
+                    value={settings.nip_kepala}
+                    onChange={(e) => setSettings({ ...settings, nip_kepala: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-medium"
+                    placeholder="038201207150004"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Kota / Tempat Terbit Surat (untuk TTD PDF)</label>
+                  <input
+                    type="text"
+                    value={settings.kota_terbit}
+                    onChange={(e) => setSettings({ ...settings, kota_terbit: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-medium"
+                    placeholder="Tanjung Lago"
                   />
                 </div>
 

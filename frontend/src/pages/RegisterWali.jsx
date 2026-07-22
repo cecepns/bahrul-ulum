@@ -22,7 +22,7 @@ const RegisterWali = () => {
       try {
         const res = await request.get(API_ENDPOINTS.SETTINGS.PUBLIC);
         if (res.success && res.data) {
-          const API_URL = import.meta.env.VITE_API_URL || "https://api-siakad.kingcreativestudio.my.id";
+          const API_URL = import.meta.env.VITE_API_URL || "https://api-ebum.bahrululum.or.id";
           if (res.data.logo_pondok) {
             setLogoUrl(`${API_URL}/${res.data.logo_pondok}`);
           }

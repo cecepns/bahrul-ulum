@@ -355,7 +355,7 @@ const AlumniAdmin = () => {
     }
   };
 
-  const API_URL = import.meta.env.VITE_API_URL || "https://api-siakad.kingcreativestudio.my.id";
+  const API_URL = import.meta.env.VITE_API_URL || "https://api-ebum.bahrululum.or.id";
 
   return (
     <div className="space-y-6">
@@ -372,8 +372,8 @@ const AlumniAdmin = () => {
                   setPagination((prev) => ({ ...prev, page: 1 }));
                 }}
                 className={`flex-1 md:flex-none px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-all ${(tab === "directory" && activeTab === "directory") || (tab === "donations" && activeTab === "donations")
-                    ? "bg-white text-emerald-700 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
+                  ? "bg-white text-emerald-700 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
                   }`}
               >
                 {tab === "directory" ? "Direktori Alumni" : "Log Donasi / Wakaf"}
@@ -543,10 +543,10 @@ const AlumniAdmin = () => {
                         <td className="px-6 py-4 max-w-[200px] truncate" title={donasi.catatan}>{donasi.catatan || "-"}</td>
                         <td className="px-6 py-4">
                           <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${donasi.status === "approved"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : donasi.status === "rejected"
-                                ? "bg-red-50 text-red-700"
-                                : "bg-amber-50 text-amber-700"
+                            ? "bg-emerald-50 text-emerald-700"
+                            : donasi.status === "rejected"
+                              ? "bg-red-50 text-red-700"
+                              : "bg-amber-50 text-amber-700"
                             }`}>
                             {donasi.status === "pending" ? "Menunggu" : donasi.status === "approved" ? "Terverifikasi" : "Ditolak"}
                           </span>

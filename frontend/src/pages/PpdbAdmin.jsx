@@ -86,7 +86,7 @@ const PpdbAdmin = () => {
     setRejectModalOpen(true);
   };
 
-  const API_URL = import.meta.env.VITE_API_URL || "https://api-siakad.kingcreativestudio.my.id";
+  const API_URL = import.meta.env.VITE_API_URL || "https://api-ebum.bahrululum.or.id";
 
   return (
     <div className="space-y-6">
@@ -102,8 +102,8 @@ const PpdbAdmin = () => {
                 setPagination((prev) => ({ ...prev, page: 1 }));
               }}
               className={`flex-1 md:flex-none px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-all ${status === tab
-                  ? "bg-white text-emerald-700 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
+                ? "bg-white text-emerald-700 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
                 }`}
             >
               {tab === "pending" ? "Menunggu" : tab === "approved" ? "Disetujui" : "Ditolak"}

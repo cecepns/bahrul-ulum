@@ -129,7 +129,7 @@ const PerizinanAdmin = () => {
 
   // QR Code image dynamic source link
   const getQrUrl = (id, type) => {
-    return `${import.meta.env.VITE_API_URL || "https://api-siakad.kingcreativestudio.my.id"}${API_ENDPOINTS.PERIZINAN.QR_CODE(id, type)}`;
+    return `${import.meta.env.VITE_API_URL || "https://api-ebum.bahrululum.or.id"}${API_ENDPOINTS.PERIZINAN.QR_CODE(id, type)}`;
   };
 
   const downloadQrCode = async (id, type) => {
@@ -278,18 +278,18 @@ const PerizinanAdmin = () => {
                     <td className="px-6 py-4">
                       <div className="flex flex-col gap-1 w-max">
                         <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${izin.status === "disetujui"
-                            ? "bg-emerald-50 text-emerald-700"
-                            : izin.status === "ditolak"
-                              ? "bg-red-50 text-red-700"
-                              : "bg-amber-50 text-amber-700"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : izin.status === "ditolak"
+                            ? "bg-red-50 text-red-700"
+                            : "bg-amber-50 text-amber-700"
                           }`}>
                           {izin.status === "menunggu" ? "Menunggu" : izin.status}
                         </span>
 
                         {izin.status === "disetujui" && (
                           <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide text-center ${izin.status_kembali === "kembali"
-                              ? "bg-emerald-50 text-emerald-600"
-                              : "bg-amber-50 text-amber-600"
+                            ? "bg-emerald-50 text-emerald-600"
+                            : "bg-amber-50 text-amber-600"
                             }`}>
                             {izin.status_kembali === "kembali" ? "Sudah Kembali" : "Belum Kembali"}
                           </span>

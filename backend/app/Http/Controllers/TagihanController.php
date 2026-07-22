@@ -177,13 +177,16 @@ class TagihanController extends Controller
         ]);
     }
 
-    // Generate Tagihan Rutin (SPP) for all active students
+    // Generate Tagihan Rutin (SPP) / Insidental for (Semua, Per Kelas, Per Siswa)
     public function generateTagihan(Request $request)
     {
         $this->validate($request, [
             'jenis_tagihan_id' => 'required|integer|exists:jenis_tagihan,id',
             'tanggal_tagihan' => 'required|date',
-            'tanggal_jatuh_tempo' => 'required|date'
+            'tanggal_jatuh_tempo' => 'required|date',
+            'target_type' => 'nullable|in:semua,kelas,siswa',
+            'kelas_id' => 'required_if:target_type,kelas|nullable|integer',
+            'santri_id' => 'required_if:target_type,siswa|nullable|integer',
         ]);
 
         $activeTA = TahunAjaran::where('status_aktif', 1)->first();
@@ -197,9 +200,24 @@ class TagihanController extends Controller
         $jenisTagihanId = $request->input('jenis_tagihan_id');
         $tglTagihan = $request->input('tanggal_tagihan');
         $tglJatuhTempo = $request->input('tanggal_jatuh_tempo');
+        $targetType = $request->input('target_type', 'semua');
 
-        // Fetch all active santri
-        $santris = Santri::where('status_aktif', 'aktif')->where('status_ppdb', 'approved')->get();
+        $query = Santri::where('status_aktif', 'aktif')->where('status_ppdb', 'approved');
+
+        if ($targetType === 'kelas') {
+            $query->where('kelas_id', $request->input('kelas_id'));
+        } else if ($targetType === 'siswa') {
+            $query->where('id', $request->input('santri_id'));
+        }
+
+        $santris = $query->get();
+
+        if ($santris->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada santri aktif yang ditemukan untuk target ini.'
+            ], 400);
+        }
 
         $count = 0;
         foreach ($santris as $santri) {
@@ -332,20 +350,26 @@ class TagihanController extends Controller
         }
 
         $settings = \App\Models\Setting::all()->pluck('value', 'key');
-        $namaPondok = $settings['nama_pondok'] ?? 'Pondok Pesantren Bahrul Ulum Jombang';
-        $alamatPondok = $settings['alamat_pondok'] ?? 'Jl. KH. Wahab Hasbullah, Tambakberas, Jombang, Jawa Timur';
-        $noTelp = $settings['no_telp'] ?? '0321-861000';
+        $namaPondok = $settings['nama_pondok'] ?? 'Pondok Pesantren Bahrul Ulum Muliasari';
+        $alamatPondok = $settings['alamat_pondok'] ?? 'Jl. Tanjung Api-api Km.42 Muliasari, Banyuasin';
+        $kotaTerbit = $settings['kota_terbit'] ?? 'Tanjung Lago';
         $logoPondok = $settings['logo_pondok'] ?? 'logo.png';
 
         $logoBase64 = '';
-        $logoPath = base_path('public/' . $logoPondok);
-        if (!file_exists($logoPath)) {
-            $logoPath = base_path('public/logo.png');
-        }
-        if (file_exists($logoPath)) {
-            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $imgData = file_get_contents($logoPath);
-            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($imgData);
+        $possiblePaths = [
+            base_path('public/' . $logoPondok),
+            base_path('public/logo.png'),
+            base_path('../logo.png'),
+            base_path('../frontend/public/logo.png'),
+        ];
+
+        foreach ($possiblePaths as $path) {
+            if ($path && file_exists($path) && !is_dir($path)) {
+                $type = pathinfo($path, PATHINFO_EXTENSION);
+                $imgData = file_get_contents($path);
+                $logoBase64 = 'data:image/' . ($type === 'svg' ? 'svg+xml' : $type) . ';base64,' . base64_encode($imgData);
+                break;
+            }
         }
 
         $options = new Options();
@@ -418,7 +442,7 @@ class TagihanController extends Controller
                     </div>
                     
                     <div class="footer">
-                        Jombang, ' . date('d F Y') . '<br/>
+                        ' . htmlspecialchars($kotaTerbit) . ', ' . date('d F Y') . '<br/>
                         Bendahara Pondok,<br/><br/><br/><br/>
                         (......................................)
                     </div>

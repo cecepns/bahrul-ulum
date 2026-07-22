@@ -32,7 +32,7 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
       try {
         const res = await request.get(API_ENDPOINTS.SETTINGS.PUBLIC);
         if (res.success && res.data) {
-          const API_URL = import.meta.env.VITE_API_URL || "https://api-siakad.kingcreativestudio.my.id";
+          const API_URL = import.meta.env.VITE_API_URL || "https://api-ebum.bahrululum.or.id";
           if (res.data.logo_pondok) {
             setLogoUrl(`${API_URL}/${res.data.logo_pondok}`);
           }
@@ -278,8 +278,8 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
                     if (window.innerWidth < 1024) toggleSidebar();
                   }}
                   className={`flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${active
-                      ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/10 font-bold"
-                      : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/40"
+                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/10 font-bold"
+                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/40"
                     }`}
                 >
                   <Icon size={16} className={active ? "text-white" : "text-slate-400"} />
@@ -299,8 +299,8 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
                 <button
                   onClick={() => toggleGroup(group.id)}
                   className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl transition-all ${groupActive
-                      ? "text-emerald-450 text-emerald-400"
-                      : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/30"
+                    ? "text-emerald-450 text-emerald-400"
+                    : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/30"
                     }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -324,8 +324,8 @@ const Sidebar = ({ isOpen, toggleSidebar, role }) => {
                             if (window.innerWidth < 1024) toggleSidebar();
                           }}
                           className={`flex items-center gap-2.5 px-3 py-2 text-xs rounded-lg transition-all ${active
-                              ? "bg-slate-800 text-white font-bold border-l-2 border-emerald-500"
-                              : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/20"
+                            ? "bg-slate-800 text-white font-bold border-l-2 border-emerald-500"
+                            : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/20"
                             }`}
                         >
                           <SubIcon size={12} className={active ? "text-emerald-450 text-emerald-450 text-emerald-400" : "text-slate-500"} />

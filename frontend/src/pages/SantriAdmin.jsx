@@ -240,13 +240,13 @@ const SantriAdmin = () => {
   // Helper download links
   const downloadBukuInduk = (id) => {
     const token = localStorage.getItem("token");
-    const url = `${import.meta.env.VITE_API_URL || "https://api-siakad.kingcreativestudio.my.id"}${API_ENDPOINTS.SANTRI.BUKU_INDUK(id)}?token=${token}`;
+    const url = `${import.meta.env.VITE_API_URL || "https://api-ebum.bahrululum.or.id"}${API_ENDPOINTS.SANTRI.BUKU_INDUK(id)}?token=${token}`;
     window.open(url, "_blank");
   };
 
   const exportCSV = () => {
     const token = localStorage.getItem("token");
-    const url = `${import.meta.env.VITE_API_URL || "https://api-siakad.kingcreativestudio.my.id"}${API_ENDPOINTS.SANTRI.EXPORT_CSV}?token=${token}`;
+    const url = `${import.meta.env.VITE_API_URL || "https://api-ebum.bahrululum.or.id"}${API_ENDPOINTS.SANTRI.EXPORT_CSV}?token=${token}`;
     window.open(url, "_blank");
   };
 
@@ -322,10 +322,10 @@ const SantriAdmin = () => {
                     <td className="px-6 py-4">{santri.kelas?.nama_kelas ?? <span className="text-slate-400 font-normal">Belum Ditentukan</span>}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${santri.status_aktif === "aktif"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : santri.status_aktif === "alumni"
-                            ? "bg-blue-50 text-blue-700"
-                            : "bg-red-50 text-red-700"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : santri.status_aktif === "alumni"
+                          ? "bg-blue-50 text-blue-700"
+                          : "bg-red-50 text-red-700"
                         }`}>
                         {santri.status_aktif}
                       </span>
